@@ -652,7 +652,3 @@ def send_feedback(request):
     except Exception as e:
         return JsonResponse({"status": "error", "message": "Unable to send feedback at this time."})
       
-#This is a test view to check if the server is running and can execute code. You can remove it in production.
-@require_GET
-def test(request):
-    return JsonResponse({"ok": True, "message": "Server is running and can execute code."})
