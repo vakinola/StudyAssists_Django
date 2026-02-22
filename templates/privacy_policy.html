@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Privacy Policy | StudyAssists</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Use your main site stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/general.css' %}">
+
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.svg' %}">
+
+    <script src="{% static 'js/sidebar.js' %}" defer></script>
+
+    <style>
+        .sa-navbar,
+        footer {
+            background: linear-gradient(135deg, #1f3c88, #3268d6);
+        }
+
+        .brand-text,
+        footer {
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="sa-navbar">
+        <div class="sa-logo">
+            <a class="sa-brand" href="{% url 'home' %}" aria-label="Study Assist home">
+                <svg class="brand-icon" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="#22c1ff" d="M2 7l10-5 10 5v2l-10 5L2 9z"></path>
+                    <path fill="#0ea5a4" d="M2 12l10-5 10 5v2l-10 5L2 14z" opacity="0.15"></path>
+                </svg>
+                <span class="brand-text">StudyAssists</span>
+            </a>
+        </div>
+        <ul class="sa-nav-links">
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'upload_notebook' %}">Upload Notebook</a></li>
+            <li><a href="{% url 'results' %}">Results</a></li>
+            <li><a href="#" class="sa-open-feedback">Feedback</a></li>
+        </ul>
+
+        <svg class="sa-showsidebar" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
+            width="24px" fill="#e3e3e3">
+            <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z" />
+        </svg>
+
+        <ul class="sa-sidebar">
+            <li class="sa-sidebar-header">
+                <a class="sa-brand" href="{% url 'home' %}" aria-label="Study Assist home">
+                    <svg class="brand-icon" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="#22c1ff" d="M2 7l10-5 10 5v2l-10 5L2 9z"></path>
+                        <path fill="#0ea5a4" d="M2 12l10-5 10 5v2l-10 5L2 14z" opacity="0.15"></path>
+                    </svg>
+                    <span class="brand-text">StudyAssists</span>
+                </a>
+                <svg class="close-sidebar" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
+                    width="24px" fill="#e3e3e3">
+                    <path
+                        d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                </svg>
+            </li>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'upload_notebook' %}">Upload Notebook</a></li>
+            <li><a href="{% url 'results' %}">Results</a></li>
+            <li><a href="#" class="sa-open-feedback">Feedback</a></li>
+        </ul>
+    </nav>
+
+    <main class="policy-page">
+        <h1>Privacy Policy</h1>
+        <p><strong>Effective Date:</strong> January 2026</p>
+
+        <p>
+            StudyAssists ("we", "our", "us") respects your privacy and is committed to protecting
+            your personal data in accordance with the General Data Protection Regulation (GDPR).
+        </p>
+
+        <h2>1. Information We Collect</h2>
+        <ul>
+            <li><strong>Account Information:</strong> email address, username, and encrypted password</li>
+            <li><strong>Uploaded Content:</strong> files or text you upload (such as study notes)</li>
+            <li><strong>Technical Data:</strong> IP address, browser type, device type</li>
+            <li><strong>Usage Data:</strong> pages visited and features used</li>
+        </ul>
+
+        <h2>2. How We Use Your Information</h2>
+        <ul>
+            <li>To create and manage user accounts</li>
+
+        </ul>
+
+        <h2>3. Legal Basis for Processing</h2>
+        <p>We process your data based on:</p>
+        <ul>
+            <li>Your consent</li>
+            <li>Performance of a contract</li>
+            <li>Legitimate interests in operating the service</li>
+        </ul>
+
+        <h2>4. Data Storage and Security</h2>
+        <p>
+            Your data is stored on servers located in Germany or within the European Union.
+            We use appropriate technical and organizational security measures to protect your data.
+        </p>
+
+        <h2>5. Data Retention</h2>
+        <p>
+            We retain your data only for as long as necessary to provide our services.
+            You may request deletion of your account and data at any time.
+        </p>
+
+        <h2>6. Cookies</h2>
+        <p>
+            We may use essential cookies to ensure proper website functionality (such as login sessions).
+            We do not use advertising or tracking cookies.
+        </p>
+
+        <h2>7. Sharing of Data</h2>
+        <p>
+            We do not sell or rent your personal data.
+            Data may be shared only with trusted service providers for the purpose of operating the service.
+        </p>
+
+        <h2>8. International Transfers</h2>
+        <p>
+            If data is processed outside the EU, appropriate safeguards will be used in accordance with GDPR.
+        </p>
+
+        <h2>9. Your Rights</h2>
+        <ul>
+            <li>Access your data</li>
+            <li>Correct inaccurate data</li>
+            <li>Request deletion (“right to be forgotten”)</li>
+            <li>Restrict or object to processing</li>
+            <li>Data portability</li>
+            <li>Withdraw consent</li>
+        </ul>
+
+        <h2>10. Children’s Privacy</h2>
+        <p>
+            StudyAssists is intended for students and educators.
+            We do not knowingly collect personal data from children under 13.
+        </p>
+
+        <h2>11. Changes to This Policy</h2>
+        <p>
+            We may update this Privacy Policy from time to time.
+            Updates will be posted on this page with a new effective date.
+        </p>
+
+        <h2>12. Contact</h2>
+        <p>
+            If you have questions about this Privacy Policy or your data, contact us at:
+        </p>
+        <p><strong>Email:</strong> support@studyassists.com</p>
+        <p><strong>Hosting Location:</strong> Germany</p>
+    </main>
+
+    <footer>
+        <p>
+            &copy;
+            <script>document.write(new Date().getFullYear());</script> StudyAssists |
+            <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+        </p>
+    </footer>
+
+</body>
+
+</html>
