@@ -142,12 +142,26 @@ ul.nav>li>a.active {
 
 .brand-icon {
   flex: 0 0 36px;
-  padding-top: 10px;
+  padding-top: 0;
 }
 
 .brand-text {
   font-weight: 700;
   font-size: 1.05rem;
+}
+
+/* Keep base navbar logo identical to results/base pages */
+.sa-navbar .brand-icon {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  padding-top: 0;
+}
+
+/* Preserve the larger icon only for the upload page mobile header */
+.mobile-header .brand-icon {
+  flex: 0 0 24px;
+  padding-top: 0;
 }
 
 .sidebar.collapsed {
@@ -387,14 +401,14 @@ span#rangeValue {
   opacity: 0.8;
 }
 
-ul {
+.doc-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-/* Update the existing ul li styles */
-ul li {
+/* Uploaded-files list item styling */
+.doc-list li {
   background: #2c65d1;
   margin: 5px 0;
   padding: 8px;
@@ -403,9 +417,26 @@ ul li {
 
   /* New: Use Flexbox to align name and delete icon */
   display: flex;
-  justify-content: space-between;
-  /* Push icon to the right */
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.doc-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.doc-row .doc-select {
+  margin-top: 0;
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
+.doc-main {
+  margin-left: 0;
+  text-align: left;
 }
 
 /* Style for the Delete Icon */
@@ -544,6 +575,17 @@ span#rangeValue {
 
 }
 
+.quiz-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quiz-actions #submitQuizBtn,
+.quiz-actions #export-options .exportpdf {
+  margin-bottom: 0;
+}
+
 textarea {
   width: 95%;
   border-radius: 10px;
@@ -612,12 +654,9 @@ footer {
   color: #777;
   text-align: center;
   width: 100% !important;
-  left: 0;
   padding: 10px 0;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  z-index: 999;
+  position: static;
+  z-index: auto;
 }
 
 
@@ -643,6 +682,20 @@ footer {
 .sidebar-nav-bottom .nav-link:hover {
   background: #2c65d1;
   transition: all 0.3s;
+}
+
+.sidebar-nav-bottom .sa-sidebar-auth {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.sidebar-nav-bottom .sa-signin-btn {
+  width: 100%;
+  border-radius: 10px;
+  justify-content: flex-start;
+  padding: 10px 14px;
+  box-shadow: none;
 }
 
 /* --- Hide text when collapsed --- */
@@ -734,7 +787,8 @@ footer {
 .custom-modal {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(14, 23, 43, 0.48);
+  backdrop-filter: blur(2px);
   z-index: 9999;
 
   display: flex;
@@ -754,40 +808,80 @@ footer {
 
 
 .custom-modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  padding: 18px 20px 16px;
+  border-radius: 14px;
   width: 90%;
-  max-width: 400px;
+  max-width: 420px;
+  box-sizing: border-box;
+  border: 1px solid #e6edf8;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.26);
+  animation: modal-rise 0.22s ease;
+}
 
+@keyframes modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .mymodalbutton {
-  background-color: #1e4ea8;
-  color: white;
+  background: linear-gradient(135deg, #1f3c88, #3268d6);
+  color: #fff;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 22px rgba(50, 104, 214, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.mymodalbutton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(50, 104, 214, 0.35);
 }
 
 .notification_modal {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
+}
+
+.notification_modal p {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .custom-modal-close {
-
-  display: grid;
-  justify-content: end;
-  transition: opacity 0.3s ease;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef4ff;
+  color: #1f3c88;
+  font-size: 20px;
+  line-height: 1;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
 }
 
 .custom-modal-close:hover {
-  opacity: 0.8;
-
+  background: #1f3c88;
+  color: #fff;
+  transform: rotate(90deg);
 }
 
 .custom-modal-btn {
@@ -798,11 +892,21 @@ footer {
   cursor: pointer;
 }
 
+.custom-modal-content #customModalMsg {
+  margin: 0;
+  color: #334155;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .custom-modal-footer {
   display: flex;
   justify-content: flex-end;
   /* aligns button to the right */
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
 .features .slider-label {
@@ -815,25 +919,19 @@ footer {
 @media (max-width: 667px) {
   .sidebar-nav-bottom {
     display: block;
-    position: absolute;
-    bottom: 2px;
+    position: static;
     left: 0;
     width: 100%;
     text-align: left;
+    margin-top: 20px;
+    padding: 0;
   }
-
-  header {
-    display: none !important;
-  }
-
-  /* Sidebar overlay full screen */
-
 
   #sidebar {
     position: fixed;
-    top: 0;
+    top: 60px;
     left: 0;
-    height: 100vh;
+    height: calc(100vh - 60px);
     /* FULL screen height */
     width: 260px;
     /* your sidebar width */
@@ -871,24 +969,53 @@ footer {
   .mobile-header {
     display: flex;
     justify-content: space-between;
-    /* Pushes content to the edges */
     align-items: center;
-    background: #1e4ea8;
+    background: linear-gradient(135deg, #1f3c88, #3268d6);
     color: white;
-    padding: 18px 7px;
+    padding: 0 20px;
+    min-height: 60px;
     position: sticky;
     top: 0;
     z-index: 1001;
   }
 
-  .mobile-toggle {
-    font-size: 22px;
+  .mobile-header .brand {
+    margin-left: 0;
+    font-size: 1.05rem;
+    letter-spacing: 0;
+    font-weight: 700;
+  }
 
+  .mobile-toggle {
+    font-size: 20px;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
     cursor: pointer;
   }
 
-  .content-wrapper {
-    padding: 0 15px;
+  .sidebar-nav-bottom .nav-link {
+    border-radius: 10px;
+    margin: 6px 0;
+    padding: 10px 14px;
+    gap: 10px;
+    background: #eef3ff;
+    color: #16356f;
+    border: 1px solid #d8e3ff;
+    font-weight: 600;
+  }
+
+  .sidebar-nav-bottom .nav-link.is-active {
+    background: linear-gradient(135deg, #1f3c88, #3268d6);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  .sidebar-nav-bottom .sa-signin-btn {
+    margin: 8px 0 0;
   }
 
   /* Optional overlay blur effect */
@@ -904,19 +1031,34 @@ footer {
   /* Main content adjustments */
   .main {
     padding: 0px;
+    overflow: visible;
+    height: auto;
+    min-height: auto;
+  }
+
+  .quiz-actions {
+    gap: 8px;
+  }
+
+  .quiz-actions #submitQuizBtn,
+  .quiz-actions #export-options {
+    flex: 1 1 0;
+    max-width: none;
+  }
+
+  .quiz-actions #submitQuizBtn,
+  .quiz-actions #export-options .exportpdf {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  .quiz-actions #export-options .exportpdf {
+    display: block;
   }
 
   .main-section {
     padding: 20px !important;
   }
-
-  .sidebar-nav-bottom {
-    bottom: 100px;
-    text-align: center;
-  }
-
-
-
 
   .mymodalbutton {
     padding: 5px 10px;
@@ -1112,12 +1254,15 @@ footer {
 
 /**** Flash Messages *****/
 
-/* Flash container 
 .flash-container {
-  margin: 1rem auto;
+  margin: 12px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
-
-*/
 
 /* Base flash style */
 .flash {
@@ -1125,6 +1270,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   font-family: system-ui, sans-serif;
@@ -1132,6 +1278,16 @@ footer {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   animation: slideIn 0.3s ease;
   color: #fff;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.flash-message {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Variants (like Bootstrap: success, error, warning, info) */
@@ -1166,6 +1322,7 @@ footer {
   font-size: 1.2rem;
   cursor: pointer;
   line-height: 1;
+  flex: 0 0 auto;
 }
 
 
@@ -1226,6 +1383,8 @@ footer {
 
   .flash-container {
     margin-top: 10px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .sidebar-nav-bottom-results {
@@ -1432,6 +1591,20 @@ footer {
 
 .feedback-send:hover {
   background: #1f4fb3;
+}
+
+.feedback-modal-flash {
+  margin: 0 0 10px;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.feedback-modal .feedback-modal-flash {
+  margin: 0 0 10px !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 @media (max-width: 600px) {

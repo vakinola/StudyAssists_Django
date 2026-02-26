@@ -113,10 +113,21 @@ a {
     background-color: rgb(0, 123, 255);
 }
 
+.sa-nav-links li.is-active {
+    background-color: rgb(0, 123, 255);
+}
+
 /* HAMBURGER ICON */
 .sa-showsidebar {
     display: none;
     cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
 }
 
 /* SIDEBAR */
@@ -140,7 +151,7 @@ a {
 }
 
 .sa-sidebar li {
-    height: 40px;
+    height: auto;
     width: 100%;
 }
 
@@ -155,18 +166,31 @@ a {
 
 .sa-sidebar-header svg {
     cursor: pointer;
-    margin-top: 3px;
+    margin-top: 0;
     transition: transform 0.25s ease, fill 0.25s ease;
 }
 
 .sa-sidebar-header svg:hover {
-    transform: rotate(90deg) scale(1.1);
-    fill: rgb(0, 123, 255);
+    transform: scale(1.05);
+    fill: #ffffff;
+}
+
+.sa-sidebar li.is-active a,
+.sa-sidebar li a.is-active {
+    background: #1e4ea8;
+    color: #fff;
+    border-color: transparent;
 }
 
 .sa-sidebar-auth {
     margin-top: auto;
     padding: 1rem;
+}
+
+.sa-sidebar-spacer {
+    flex: 1 1 auto;
+    min-height: 120px;
+    pointer-events: none;
 }
 
 
@@ -185,7 +209,7 @@ a {
 }
 
 .sa-signin-btn:hover {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgb(229, 198, 86);
 }
 
 /* Desktop login button */
@@ -358,15 +382,103 @@ footer {
         display: block;
     }
 
-    .sa-sidebar li:hover {
-
-        background-color: rgb(0, 123, 255);
-        cursor: pointer;
+    .sa-sidebar {
+        width: 260px;
+        background: #fff;
+        padding: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
     }
 
+    .sa-sidebar-header {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        min-height: 60px;
+        margin: 0;
+        padding: 0 20px;
+        background: linear-gradient(135deg, #1f3c88, #3268d6);
+    }
 
-    .sa-sidebar li:first-child:hover {
-        background-color: transparent;
+    .sa-sidebar-spacer {
+        min-height: 140px;
+    }
+
+    .sa-sidebar li {
+        padding: 0 12px;
+    }
+
+    .sa-sidebar li.sa-sidebar-header,
+    .sa-sidebar li.sa-sidebar-spacer {
+        padding: 0 20px;
+    }
+
+    .sa-sidebar li:not(.sa-sidebar-header):not(.sa-sidebar-spacer) {
+        margin-bottom: 6px;
+    }
+
+    .sa-sidebar li a {
+        display: flex;
+        align-items: center;
+        min-height: 42px;
+        width: 100%;
+        border-radius: 10px;
+        margin: 0;
+        padding: 10px 14px;
+        background: #eef3ff;
+        border: 1px solid #d8e3ff;
+        color: #16356f;
+        font-weight: 600;
+    }
+
+    .sa-sidebar li.sa-sidebar-header a {
+        margin: 0;
+        padding: 0;
+        min-height: 0;
+        width: auto;
+        background: transparent;
+        border: 0;
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .sa-sidebar li.is-active a,
+    .sa-sidebar li a.is-active {
+        background: #1e4ea8 !important;
+        color: #fff !important;
+        border-color: transparent !important;
+    }
+
+    .sa-sidebar .close-sidebar {
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        width: 40px;
+        height: 40px;
+        padding: 8px;
+        transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+    }
+
+    .sa-sidebar .close-sidebar:hover {
+        transform: rotate(90deg);
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .sa-sidebar li:not(.sa-sidebar-header):not(.sa-sidebar-spacer):hover a {
+        background: #dfe9ff;
+    }
+
+    .sa-sidebar .sa-sidebar-auth {
+        margin-top: 8px;
+        padding: 0 12px 14px;
+    }
+
+    .sa-sidebar .sa-signin-btn {
+        justify-content: flex-start;
+        margin-top: 0;
+        background: rgb(229, 198, 86);
+        color: #1f1f1f;
+        border: 0;
     }
 
     .sa-desktop-login {
@@ -669,33 +781,6 @@ footer {
     transform: scale(0.98);
 }
 
-/* =========================
-   PRIVACY POLICY MODAL 
-========================= */
-.policy-page {
-
-    padding: 5px 40px 40px 40px;
-    background: white;
-    color: #111;
-    border-radius: 12px;
-    line-height: 1.7;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.policy-page h1 {
-    margin-bottom: 20px;
-}
-
-.policy-page h2 {
-    margin-top: 30px;
-}
-
-.policy-page ul {
-    margin-left: 20px;
-}
-
 /* Feedback modal styles */
 .feedback-backdrop {
     position: fixed;
@@ -872,6 +957,20 @@ footer {
     background: #1f4fb3;
 }
 
+.feedback-modal-flash {
+    margin: 0 0 10px;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+}
+
+.feedback-modal .feedback-modal-flash {
+    margin: 0 0 10px !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
 @media (max-width:600px) {
     .feedback-modal {
         width: 80%;
@@ -910,11 +1009,23 @@ footer {
 }
 
 /* flash messages */
+.flash-container {
+    margin: 12px auto 16px;
+    width: min(1100px, 100%);
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 100%;
+    min-width: 0;
+}
+
 .flash {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
     font-family: system-ui, sans-serif;
@@ -922,6 +1033,16 @@ footer {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     animation: slideIn 0.3s ease;
     color: #fff;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.flash-message {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .flash-success {
@@ -949,6 +1070,7 @@ footer {
     font-size: 1.2rem;
     cursor: pointer;
     line-height: 1;
+    flex: 0 0 auto;
 }
 
 .flash {
@@ -960,19 +1082,4 @@ footer {
 .flash.fade-out {
     opacity: 0;
     transform: translateY(-10px);
-}
-
-
-/* =========================
-  RESULTS PAGE 
-========================= */
-
-.no-result-message {
-    text-align: left;
-    padding: 20px;
-    font-weight: 500;
-}
-
-.result_side_hidden {
-    display: none;
 }

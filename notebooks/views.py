@@ -223,8 +223,45 @@ def _process_job(job_id: str, text: str, persist_dir: str, filename: str, start_
 def home(request):
     return render(request, "home.html")
 
+def _get_upload_page_context(request):
+    job_id = request.session.get("job_id")
+    if job_id:
+        st = cache.get(f"job:{job_id}") or {}
+        phase = (st.get("phase") or "").lower()
+
+        if phase == "completed" and st.get("summary"):
+            docs = request.session.get("docs", {})
+            filename = st.get("filename") or request.session.get("uploaded_filename")
+
+            if filename:
+                info = docs.get(filename, {})
+                info["persist_dir"] = info.get("persist_dir") or request.session.get("persist_directory")
+                info["summary"] = st["summary"]
+                docs[filename] = info
+                request.session["docs"] = docs
+
+                request.session["uploaded_filename"] = filename
+                request.session["summary_text"] = st["summary"]
+
+            cache.delete(f"job:{job_id}")
+            request.session.pop("job_id", None)
+            job_id = None
+
+        elif phase == "error":
+            messages.error(request, f"⚠️ Could not build index or generate summary: {st.get('error')}")
+            cache.delete(f"job:{job_id}")
+            request.session.pop("job_id", None)
+            job_id = None
+
+    return {
+        "filename": request.session.get("uploaded_filename"),
+        "summary": request.session.get("summary_text"),
+        "job_id": job_id,
+    }
+
+
 def privacy_policy(request):
-    return render(request, "privacy_policy.html")
+    return render(request, "privacy_policy.html", _get_upload_page_context(request))
 
 def terms_of_service(request):
     return render(request, "terms_of_service.html")
@@ -291,44 +328,7 @@ def delete_doc(request):
 
 @require_GET
 def upload_notebook(request):
-    job_id = request.session.get("job_id")
-    if job_id:
-        st = cache.get(f"job:{job_id}") or {}
-        phase = (st.get("phase") or "").lower()
-
-        if phase == "completed" and st.get("summary"):
-            docs = request.session.get("docs", {})
-            filename = st.get("filename") or request.session.get("uploaded_filename")
-
-            if filename:
-                info = docs.get(filename, {})
-                info["persist_dir"] = info.get("persist_dir") or request.session.get("persist_directory")
-                info["summary"] = st["summary"]
-                docs[filename] = info
-                request.session["docs"] = docs
-
-                request.session["uploaded_filename"] = filename
-                request.session["summary_text"] = st["summary"]
-
-            cache.delete(f"job:{job_id}")
-            request.session.pop("job_id", None)
-            job_id = None
-
-        elif phase == "error":
-            messages.error(request, f"⚠️ Could not build index or generate summary: {st.get('error')}")
-            cache.delete(f"job:{job_id}")
-            request.session.pop("job_id", None)
-            job_id = None
-
-    return render(
-        request,
-        "upload_notebook.html",
-        {
-            "filename": request.session.get("uploaded_filename"),
-            "summary": request.session.get("summary_text"),
-            "job_id": job_id,
-        },
-    )
+    return render(request, "upload_notebook.html", _get_upload_page_context(request))
 
 
 @require_GET
@@ -627,7 +627,6 @@ def results(request):
 
 
 @require_POST
-@csrf_exempt
 def send_feedback(request):
     rating = request.POST.get("rating", "N/A")
     category = request.POST.get("category", "N/A")
@@ -650,5 +649,9 @@ def send_feedback(request):
 
         return JsonResponse({"status": "success", "message": "Thank you! Your feedback has been sent."})
     except Exception as e:
-        return JsonResponse({"status": "error", "message": "Unable to send feedback at this time."})
+        # log the full exception so we can inspect it in the console/logs
+        import logging
+        logging.getLogger(__name__).exception("feedback send failed")
+        # tell the client what went wrong (remove before production)
+        return JsonResponse({"status": "error", "message": f"Unable to send feedback: {e}"})
       

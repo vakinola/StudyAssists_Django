@@ -139,13 +139,62 @@
     // Feedback modal wiring
     const feedbackBackdrop = document.getElementById('feedback-modal');
     const feedbackForm = document.getElementById('feedbackForm');
-    const openFeedbackBtns = document.querySelectorAll('.sa-open-feedback');
+    let feedbackFlashContainer = document.getElementById('feedback-modal-flash');
+    const openFeedbackBtns = document.querySelectorAll('.sa-open-feedback, .feedback-open');
+    window.__feedbackModalWired = true;
+
+    function getCookie(name) {
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith(`${name}=`))
+            ?.split('=')[1];
+        return cookieValue ? decodeURIComponent(cookieValue) : '';
+    }
+
+    function getCsrfToken(form) {
+        const tokenFromForm = form?.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+        const tokenFromMeta = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        return tokenFromForm || tokenFromMeta || getCookie('csrftoken');
+    }
+
+    function getFeedbackFlashContainer() {
+        if (feedbackFlashContainer) return feedbackFlashContainer;
+        if (!feedbackForm) return null;
+        feedbackFlashContainer = document.createElement('div');
+        feedbackFlashContainer.id = 'feedback-modal-flash';
+        feedbackFlashContainer.className = 'feedback-modal-flash flash-container';
+        feedbackFlashContainer.setAttribute('aria-live', 'polite');
+        feedbackForm.prepend(feedbackFlashContainer);
+        return feedbackFlashContainer;
+    }
+
+    function clearFeedbackFlash() {
+        if (feedbackFlashContainer) feedbackFlashContainer.innerHTML = '';
+    }
+
+    function showFeedbackFlash(message, type) {
+        const container = getFeedbackFlashContainer();
+        if (!container) return;
+        const flash = document.createElement('div');
+        flash.className = `flash flash-${type}`;
+        flash.innerHTML = `
+            <span class="flash-message">${message}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
+        `;
+        container.appendChild(flash);
+        flash.scrollIntoView({ block: 'nearest' });
+        setTimeout(() => {
+            flash.classList.add('fade-out');
+            setTimeout(() => flash.remove(), 400);
+        }, 6000);
+    }
 
     function openFeedbackModal() {
         if (!feedbackBackdrop) return;
         feedbackBackdrop.classList.add('active');
         feedbackBackdrop.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
+        clearFeedbackFlash();
     }
 
     function closeFeedbackModal() {
@@ -174,9 +223,39 @@
     feedbackForm?.addEventListener('submit', (e) => {
         e.preventDefault();
         const data = new FormData(feedbackForm);
-        console.log('Feedback submitted', Object.fromEntries(data.entries()));
-        alert('Thanks for your feedback! (stub)');
-        closeFeedbackModal();
+        const csrfToken = getCsrfToken(feedbackForm);
+        const headers = csrfToken ? { 'X-CSRFToken': csrfToken } : {};
+        const endpoint = feedbackForm.getAttribute('action') || '/send-feedback';
+
+        // Ensure csrfmiddlewaretoken is present in multipart payload too.
+        if (csrfToken && !data.has('csrfmiddlewaretoken')) {
+            data.append('csrfmiddlewaretoken', csrfToken);
+        }
+
+        fetch(endpoint, {
+            method: 'POST',
+            headers,
+            body: data,
+            credentials: 'same-origin'
+        })
+            .then(async response => {
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result?.message || 'Request failed');
+                }
+                return result;
+            })
+            .then(result => {
+                const flashType = result.status === 'success' ? 'success' : 'error';
+                showFeedbackFlash(result.message, flashType);
+
+                if (result.status === 'success') {
+                    feedbackForm.reset();
+                }
+            })
+            .catch(error => {
+                showFeedbackFlash(`Error sending feedback: ${error.message}`, 'error');
+            });
     });
 
     // Close button inside modal

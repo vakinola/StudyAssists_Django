@@ -15,23 +15,25 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("final.js loaded ✅");
   console.log("delete button found:", !!document.getElementById("deleteDocBtn"));
 
+  // showAlert now reuses the existing flash styles instead of Bootstrap alerts
   function showAlert(message, type = "success", timeout = 4000) {
-    const container = document.getElementById("alertContainer");
+    // map Bootstrap-style "danger" to our "error" class
+    const flashType = type === "danger" ? "error" : type;
+    const container = document.querySelector(".flash-container");
     if (!container) return;
 
-    container.innerHTML = `
-    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-      ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-  `;
+    const flash = document.createElement("div");
+    flash.className = `flash flash-${flashType}`;
+    flash.innerHTML = `
+      <span class="flash-message">${message}</span>
+      <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
+    `;
+    container.appendChild(flash);
 
     if (timeout) {
       setTimeout(() => {
-        const alert = container.querySelector(".alert");
-        alert?.classList.remove("show");
-        alert?.classList.add("fade");
-        setTimeout(() => alert?.remove(), 300);
+        flash.classList.add("fade-out");
+        setTimeout(() => flash.remove(), 400);
       }, timeout);
     }
   }
@@ -116,11 +118,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Sidebar / mobile controls
   const fileList = $("fileList");
+  const deleteDocBtn = $("deleteDocBtn");
   const questionWarning = $("questionWarning");
   const quizWarning = $("quizWarning");
   const toggleBtn = $("toggleBtn");
   const sidebar = $("sidebar");
   const mobileToggle = $("mobileToggle");
+  const navBackdrop = document.querySelector(".sa-backdrop");
+
+  function setUploadSidebarOpen(isOpen) {
+    if (!sidebar) return;
+    sidebar.classList.toggle("open", isOpen);
+    document.body.classList.toggle("menu-open", isOpen);
+    navBackdrop?.classList.toggle("active", isOpen);
+  }
+
+  function syncMobileToggleIcon(isOpen) {
+    const icon = mobileToggle?.querySelector("i");
+    if (!icon) return;
+    icon.classList.toggle("fa-bars", !isOpen);
+    icon.classList.toggle("fa-times", isOpen);
+  }
 
   // ==============================
   // 1️⃣ Range slider update
@@ -275,7 +293,6 @@ document.addEventListener("DOMContentLoaded", () => {
   //################################################################
   //handler for delete document
   //################################################################
-  const deleteDocBtn = document.getElementById("deleteDocBtn");
   deleteDocBtn?.addEventListener("click", async () => {
     const filename = getSelectedDocName();
 
@@ -290,7 +307,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!confirmed) return;
 
-
     try {
       const resp = await fetch("/delete_doc", {
         method: "POST",
@@ -302,13 +318,11 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(data.error || "Delete failed");
       }
 
-      // ✅ Green success alert
-      showAlert(data.message || "Document deleted successfully.", "success");
-
-      // Refresh after short delay so user sees alert
+      // no client-side alert; page will reload and server flash will appear
       setTimeout(() => location.reload(), 1200);
 
     } catch (e) {
+      // still show error immediately since reload won't help
       showAlert(e.message, "danger");
     }
   });
@@ -619,6 +633,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---- 4) Generate Quiz (server) + render + export ----
   let lastQuiz = [];
+  let quizSubmitted = false;
 
   function renderQuiz(quiz) {
     console.log("QUIZ DATA:", JSON.stringify(quiz, null, 2));
@@ -687,6 +702,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // if we get here, everything is answered → clear warning
     if (quizWarning) quizWarning.textContent = "";
+    quizSubmitted = true;
 
     let correctCount = 0;
 
@@ -791,9 +807,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit: "mm", format: "a4" });
 
-      const answeredCount =
-        quizList?.querySelectorAll('input[type="radio"]:checked').length || 0;
-      const hasAnswers = answeredCount > 0;
+      const hasAnswers = quizSubmitted;
 
       const pageBottom = 280;
       let yPos = 22;
@@ -826,7 +840,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const item = quizList?.querySelector(
           `.list-group-item:nth-child(${qIndex + 1})`
         );
-        const selected = item?.querySelector("input:checked")?.value?.toUpperCase();
+        const selected = hasAnswers
+          ? item?.querySelector("input:checked")?.value?.toUpperCase()
+          : null;
         const correct = (
           item?.dataset.correct ||
           q.correct ||
@@ -858,7 +874,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // ---- Choices ----
         q.choices.forEach((choice, i) => {
           const letter = String.fromCharCode(65 + i);
-          const text = choice.replace(/^[A-D]\)\s*/i, "");
+          //const text = choice.replace(/^[A-D]\)\s*/i, "");
+          const text = choice.replace(/^[A-E][\)\.\:-]\s*/i, ""); // strips A) A. A: A- ... through E
 
           let color = [0, 0, 0];
           let weight = "normal";
@@ -930,7 +947,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let y = 25;
         lastQuiz.forEach((q, i) => {
           const correct = (q.correct || "")
-            .replace(/[^A-D]/gi, "")
+            .replace(/[^A-E]/gi, "")
             .toUpperCase();
           doc.setFontSize(11);
           doc.setFont("helvetica", "normal");
@@ -943,6 +960,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
+      // ================= Page Numbers (minimal) =================
+      const pageCount = doc.getNumberOfPages();
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.text(String(i), 200, 290, { align: "right" });
+      }
       doc.save(`${displayTitle}_quiz.pdf`);
     });
   }
@@ -954,6 +981,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function clearPreviousQuiz() {
     lastQuiz = [];
+    quizSubmitted = false;
 
     if (quizList) quizList.innerHTML = "";
     if (quizResults) quizResults.innerHTML = "";
@@ -971,14 +999,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Mobile UX: If no file selected, open sidebar and show notification
       if (!filename) {
         if (window.innerWidth <= 768) { // mobile breakpoint
-          sidebar.classList.add("open");
-          document.body.classList.add("menu-open");
-          // Change mobile toggle icon
-          const icon = mobileToggle?.querySelector("i");
-          if (icon) {
-            icon.classList.remove("fa-bars");
-            icon.classList.add("fa-times");
-          }
+          setUploadSidebarOpen(true);
+          syncMobileToggleIcon(true);
           showModal("Please select a document from 'Uploaded files' first.");
         } else {
           showModal("Please select a document from 'Uploaded files' first.");
@@ -1011,14 +1033,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Mobile UX: If no file selected, open sidebar and show notification
       if (!filename) {
         if (window.innerWidth <= 768) { // mobile breakpoint
-          sidebar.classList.add("open");
-          document.body.classList.add("menu-open");
-          // Change mobile toggle icon
-          const icon = mobileToggle?.querySelector("i");
-          if (icon) {
-            icon.classList.remove("fa-bars");
-            icon.classList.add("fa-times");
-          }
+          setUploadSidebarOpen(true);
+          syncMobileToggleIcon(true);
           showModal("Please select a document from 'Uploaded files' first.");
         } else {
           showModal("Please select a document from 'Uploaded files' first.");
@@ -1102,6 +1118,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  syncDeleteButtonVisibility();
+
 
   async function loadSummaryFor(filename) {
     const sumSec = document.getElementById("summarySection");
@@ -1138,133 +1156,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   mobileToggle?.addEventListener("click", (e) => {
     e.stopPropagation();
-    const icon = mobileToggle.querySelector("i");
     const isOpening = !sidebar.classList.contains("open");
+    setUploadSidebarOpen(isOpening);
+    syncMobileToggleIcon(isOpening);
+  });
 
-    sidebar.classList.toggle("open", isOpening);
-    document.body.classList.toggle("menu-open", isOpening);
-
-    if (isOpening) {
-      icon.classList.remove("fa-bars");
-      icon.classList.add("fa-times");
-    } else {
-      icon.classList.remove("fa-times");
-      icon.classList.add("fa-bars");
-    }
+  navBackdrop?.addEventListener("click", () => {
+    if (!document.body.classList.contains("upload-page")) return;
+    setUploadSidebarOpen(false);
+    syncMobileToggleIcon(false);
   });
 
 
 
-  // Select all feedback trigger links
-  const feedbackLinks = document.querySelectorAll(".feedback-open");
-  const feedbackModal = document.getElementById("feedback-modal");
-  const feedbackClose = document.getElementById("feedback-close");
-  const feedbackForm = document.getElementById("feedbackForm");
-  const mainContent = document.getElementById("main"); // if modal is inside main
-
-  // Close modal function
-  function closeModal() {
-    feedbackModal.classList.remove("active");
-    if (mainContent) {
-      mainContent.style.overflow = "";
-    } else {
-      document.body.style.overflow = "";
-    }
+  // Feedback modal submit/open handling is centralized in static/js/modal.js.
+  // Avoid duplicate listeners on upload pages.
+  if (!window.__feedbackModalWired) {
+    console.warn("Expected modal feedback wiring was not found.");
   }
 
-  // Open modal on any trigger click
-  feedbackLinks.forEach(link => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      feedbackModal.classList.add("active");
-      // Lock scrolling inside main (or body if modal covers entire page)
-      if (mainContent) {
-        mainContent.style.overflow = "hidden";
-      } else {
-        document.body.style.overflow = "hidden";
-      }
-    });
-  });
-
-  // Close modal on cancel button click
-  feedbackClose.addEventListener("click", () => {
-    feedbackModal.classList.remove("active");
-    if (mainContent) {
-      mainContent.style.overflow = "";
-    } else {
-      document.body.style.overflow = "";
-    }
-  });
-
-  // Close modal when clicking outside the modal content
-  feedbackModal.addEventListener("click", (e) => {
-    if (e.target === feedbackModal) {
-      feedbackModal.classList.remove("active");
-      if (mainContent) {
-        mainContent.style.overflow = "";
-      } else {
-        document.body.style.overflow = "";
-      }
-    }
-  });
-
-  // Close modal on pressing ESC key
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      feedbackModal.classList.remove("active");
-      if (mainContent) {
-        mainContent.style.overflow = "";
-      } else {
-        document.body.style.overflow = "";
-      }
-    }
-  });
-
-  feedbackForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const formData = new FormData(feedbackForm);
-
-    try {
-      const response = await fetch("/send-feedback", {
-        method: "POST",
-        body: formData
-      });
-
-      const result = await response.json();
-
-      // Use flash messages instead of alert
-      const flashContainer = document.querySelector(".flash-container");
-      if (flashContainer) {
-        const flash = document.createElement("div");
-        flash.className = `flash flash-${result.status}`;
-        flash.innerHTML = `
-        <span class="flash-message">${result.message}</span>
-        <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
-      `;
-        flashContainer.appendChild(flash);
-        setTimeout(() => flash.remove(), 5000);
-      }
-
-      if (result.status === "success") {
-        feedbackForm.reset();
-        closeModal();
-      }
-
-    } catch (err) {
-      console.error("Feedback submission failed:", err);
-      // Flash error
-      const flashContainer = document.querySelector(".flash-container");
-      if (flashContainer) {
-        const flash = document.createElement("div");
-        flash.className = "flash flash-error";
-        flash.innerHTML = `
-        <span class="flash-message">Failed to send feedback. Please try again later.</span>
-        <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
-      `;
-        flashContainer.appendChild(flash);
-        setTimeout(() => flash.remove(), 5000);
-      }
-    }
-  });
-
 });
+  function hasUploadedDocs() {
+    if (!fileList) return false;
+    return fileList.querySelectorAll(".doc-item .doc-select").length > 0;
+  }
+
+  function syncDeleteButtonVisibility() {
+    if (!deleteDocBtn) return;
+    deleteDocBtn.style.display = hasUploadedDocs() ? "block" : "none";
+  }
+
+  syncDeleteButtonVisibility();
